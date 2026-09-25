@@ -1,268 +1,139 @@
 const express = require("express");
 const cors = require("cors");
+const { GoogleGenAI } = require("@google/genai");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: "20mb" }));
 
+const PORT = process.env.PORT || 3000;
 
-// ============================================
-// TEST ROUTE
-// ============================================
-
-app.get("/", function (req, res) {
-
-    res.json({
-        message: "StudyQuiz local AI backend is running!"
-    });
-
+const ai = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY
 });
 
+app.get("/", (req, res) => {
+    res.json({
+        message: "StudyQuiz backend is running!"
+    });
+});
 
-// ============================================
-// GENERATE QUIZ
-// ============================================
-
-app.post("/generate-quiz", async function (req, res) {
-
+app.post("/generate-quiz", async (req, res) => {
     try {
+        const { text, quizType, questionCount } = req.body;
 
-        const {
-            text,
-            quizType,
-            questionCount
-        } = req.body;
-
-
-        // ========================================
-        // VALIDATION
-        // ========================================
-
-        if (!text || text.trim() === "") {
-
+        if (!text || !quizType || !questionCount) {
             return res.status(400).json({
-                error: "No PDF text was provided."
+                error: "Missing text, quizType, or questionCount."
             });
-
         }
 
-        if (!quizType) {
+        const count = Number(questionCount);
 
-            return res.status(400).json({
-                error: "Quiz type is required."
-            });
-
-        }
-
-        if (!questionCount) {
-
-            return res.status(400).json({
-                error: "Question count is required."
-            });
-
-        }
-
-
-        // ========================================
-        // QUIZ TYPE
-        // ========================================
-
-        let quizInstructions = "";
+        let prompt;
 
         if (quizType === "multiple-choice") {
+            prompt = `
+You are generating a study quiz from the provided study material.
 
-            quizInstructions = `
-Create ${questionCount} multiple-choice questions.
-
-Rules:
-
-- Every question must be SHORT and CLEAR.
-- Test understanding of the study material.
-- Do not simply copy an entire sentence from the PDF.
-- Create exactly FOUR choices.
-- There must be exactly ONE correct answer.
-- Incorrect choices should be plausible.
-- Do not invent information.
-- Every answer must be supported by the study material.
-- Avoid duplicate questions.
-- Try to cover different topics from the material.
-`;
-
-        } else if (quizType === "identification") {
-
-            quizInstructions = `
-Create ${questionCount} identification questions.
+Create exactly ${count} multiple-choice questions.
 
 Rules:
+- Use ONLY information found in the study material.
+- Do not invent facts.
+- Each question must have exactly 4 options.
+- Only ONE option must be correct.
+- Make the incorrect options plausible.
+- The answer must exactly match one of the options.
+- Cover different parts of the study material when possible.
+- Return ONLY valid JSON.
 
-- Every question must be SHORT and CLEAR.
-- Ask about an important term, concept, person, process, definition, or fact.
-- Test understanding of the study material.
-- Do not simply copy an entire sentence from the PDF.
-- Give one concise correct answer.
-- Do not invent information.
-- Every answer must be supported by the study material.
-- Avoid duplicate questions.
-- Try to cover different topics from the material.
-`;
-
-        } else {
-
-            return res.status(400).json({
-                error: "Invalid quiz type."
-            });
-
-        }
-
-
-        // ========================================
-        // PROMPT
-        // ========================================
-
-        const prompt = `
-
-You are an expert educational quiz generator.
-
-Your task is to create a student quiz using ONLY
-the study material provided below.
-
-Do NOT use outside knowledge.
-
-Do NOT invent facts.
-
-Do NOT create information that is not supported
-by the study material.
-
-${quizInstructions}
-
-Return ONLY valid JSON.
-
-For MULTIPLE CHOICE, use exactly this format:
-
+Required JSON format:
 {
-    "questions": [
-        {
-            "question": "Short question here",
-            "options": [
-                "Choice A",
-                "Choice B",
-                "Choice C",
-                "Choice D"
-            ],
-            "answer": "Correct choice"
-        }
-    ]
+  "questions": [
+    {
+      "question": "Question here",
+      "options": [
+        "Option 1",
+        "Option 2",
+        "Option 3",
+        "Option 4"
+      ],
+      "answer": "Correct option"
+    }
+  ]
 }
 
-For IDENTIFICATION, use exactly this format:
-
-{
-    "questions": [
-        {
-            "question": "Short question here",
-            "answer": "Correct answer"
-        }
-    ]
-}
-
-STUDY MATERIAL:
-
-----------------------------
-
+Study material:
 ${text}
-
-----------------------------
 `;
+        } else if (quizType === "identification") {
+            prompt = `
+You are generating an identification quiz from the provided study material.
 
+Create exactly ${count} identification questions.
 
-        // ========================================
-        // SEND TO OLLAMA
-        // ========================================
+Rules:
+- Use ONLY information found in the study material.
+- Do not invent facts.
+- Questions should ask for a specific person, term, concept, place, date, process, or other identifiable answer found in the material.
+- Keep answers concise.
+- Return ONLY valid JSON.
 
-        const response = await fetch(
-            "http://localhost:11434/api/generate",
-            {
+Required JSON format:
+{
+  "questions": [
+    {
+      "question": "Question here",
+      "answer": "Correct answer"
+    }
+  ]
+}
 
-                method: "POST",
+Study material:
+${text}
+`;
+        } else {
+            return res.status(400).json({
+                error: "Unsupported quiz type."
+            });
+        }
 
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-
-                    model: "llama3.2:3b",
-
-                    prompt: prompt,
-
-                    stream: false,
-
-                    format: "json"
-
-                })
-
-            }
+        console.log(
+            `Generating ${count} ${quizType} questions with Gemini...`
         );
 
+        const response = await ai.models.generateContent({
+            model: "gemini-3.1-flash-lite",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json"
+            }
+        });
 
-        // ========================================
-        // CHECK OLLAMA RESPONSE
-        // ========================================
+        const result = JSON.parse(response.text);
 
-        if (!response.ok) {
-
-            throw new Error(
-                `Ollama returned status ${response.status}`
-            );
-
+        if (!result.questions || !Array.isArray(result.questions)) {
+            throw new Error("Gemini returned an invalid quiz format.");
         }
 
-
-        const data = await response.json();
-
-
-        // ========================================
-        // PARSE AI RESPONSE
-        // ========================================
-
-        const result =
-            JSON.parse(data.response);
-
-
-        // ========================================
-        // SEND QUIZ TO WEBSITE
-        // ========================================
+        console.log(
+            `Successfully generated ${result.questions.length} questions.`
+        );
 
         res.json(result);
 
-
     } catch (error) {
-
-        console.error("AI ERROR:");
-        console.error(error);
+        console.error("Quiz generation error:", error);
 
         res.status(500).json({
-
-            error:
-                error.message ||
-                "Something went wrong while generating the quiz."
-
+            error: "Failed to generate quiz.",
+            details: error.message
         });
-
     }
-
 });
 
-
-// ============================================
-// START SERVER
-// ============================================
-
-app.listen(3000, function () {
-
-    console.log(
-        "StudyQuiz local AI backend is running at http://localhost:3000"
-    );
-
+app.listen(PORT, () => {
+    console.log(`StudyQuiz backend running on port ${PORT}`);
 });
