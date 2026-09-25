@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>StudyQuiz</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+
+<body>
+
+    <header>
+        <div class="header-content">
+            <div class="logo">📚</div>
+
+            <div>
+                <h1>StudyQuiz</h1>
+                <p>Turn your reviewer into a quiz</p>
+            </div>
+        </div>
+    </header>
+
+
+    <main>
+
+        <!-- =========================
+             UPLOAD SECTION
+        ========================== -->
+
+        <section id="uploadSection" class="section">
+
+            <div class="hero">
+                <div class="badge">📖 STUDY SMARTER</div>
+
+                <h2>
+                    Turn your reviewer<br>
+                    into a quiz.
+                </h2>
+
+                <p>
+                    Upload a PDF reviewer and create
+                    a practice quiz from your study material.
+                </p>
+            </div>
+
+
+            <div class="card">
+
+                <h2>Upload your PDF</h2>
+
+                <p class="description">
+                    Select a PDF file from your computer.
+                </p>
+
+
+                <!-- IMPORTANT:
+                     The actual file input is visible.
+                     This prevents CSS from blocking it.
+                -->
+
+                <div class="upload-box">
+
+                    <div class="upload-icon">
+                        📄
+                    </div>
+
+                    <h3>
+                        Choose your PDF
+                    </h3>
+
+                    <p>
+                        Select a PDF reviewer from your computer.
+                    </p>
+
+
+                    <input
+                        type="file"
+                        id="pdfFile"
+                        accept=".pdf,application/pdf"
+                    >
+
+
+                    <div id="fileName">
+                        No file selected
+                    </div>
+
+                </div>
+
+
+                <button
+                    id="continueButton"
+                    class="primary-button"
+                    type="button"
+                    disabled
+                >
+                    Continue →
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             PDF PREVIEW
+        ========================== -->
+
+        <section
+            id="textPreview"
+            class="section hidden"
+        >
+
+            <div class="card">
+
+                <h2>PDF Successfully Read</h2>
+
+                <p class="description">
+                    Here is the text extracted from your PDF.
+                </p>
+
+
+                <div class="preview-box">
+                    <pre id="extractedTextPreview"></pre>
+                </div>
+
+
+                <div class="button-row">
+
+                    <button
+                        id="continueToQuizSettings"
+                        class="primary-button"
+                        type="button"
+                    >
+                        Continue to Quiz Settings →
+                    </button>
+
+
+                    <button
+                        id="uploadNewFileFromPreview"
+                        class="secondary-button"
+                        type="button"
+                    >
+                        ← Upload New PDF
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             QUIZ SETTINGS
+        ========================== -->
+
+        <section
+            id="quizSettings"
+            class="section hidden"
+        >
+
+            <div class="card">
+
+                <h2>Quiz Settings</h2>
+
+                <p class="description">
+                    Choose how you want to practice.
+                </p>
+
+
+                <!-- QUIZ TYPE -->
+
+                <div class="setting">
+
+                    <h3>
+                        01. Choose Quiz Type
+                    </h3>
+
+
+                    <div class="options">
+
+                        <button
+                            type="button"
+                            class="quiz-type active"
+                            data-type="multiple-choice"
+                        >
+                            <strong>
+                                🔘 Multiple Choice
+                            </strong>
+
+                            <span>
+                                Choose the correct answer
+                            </span>
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="quiz-type"
+                            data-type="identification"
+                        >
+                            <strong>
+                                ✏️ Identification
+                            </strong>
+
+                            <span>
+                                Type your answer
+                            </span>
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- QUESTION COUNT -->
+
+                <div class="setting">
+
+                    <h3>
+                        02. Number of Questions
+                    </h3>
+
+
+                    <div class="count-options">
+
+                        <button
+                            type="button"
+                            class="count-button active"
+                            data-count="5"
+                        >
+                            5
+                        </button>
+
+                        <button
+                            type="button"
+                            class="count-button"
+                            data-count="10"
+                        >
+                            10
+                        </button>
+
+                        <button
+                            type="button"
+                            class="count-button"
+                            data-count="15"
+                        >
+                            15
+                        </button>
+
+                        <button
+                            type="button"
+                            class="count-button"
+                            data-count="20"
+                        >
+                            20
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="button-row">
+
+                    <button
+                        id="generateButton"
+                        class="primary-button"
+                        type="button"
+                    >
+                        Generate Quiz →
+                    </button>
+
+
+                    <button
+                        id="uploadNewFileFromSettings"
+                        class="secondary-button"
+                        type="button"
+                    >
+                        ← Upload New PDF
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             QUIZ SECTION
+        ========================== -->
+
+        <section
+            id="quizSection"
+            class="section hidden"
+        >
+
+            <div class="card quiz-card">
+
+                <div class="quiz-header">
+
+                    <div>
+                        <span id="questionNumber">
+                            Question 1 of 5
+                        </span>
+                    </div>
+
+                    <div id="quizTypeDisplay">
+                        Multiple Choice
+                    </div>
+
+                </div>
+
+
+                <div class="progress-container">
+                    <div
+                        id="progressBar"
+                        class="progress-bar"
+                    ></div>
+                </div>
+
+
+                <div class="question-area">
+
+                    <small>
+                        QUESTION
+                    </small>
+
+                    <h2 id="questionText">
+                        Question
+                    </h2>
+
+                </div>
+
+
+                <div id="answerArea"></div>
+
+
+                <button
+                    id="nextButton"
+                    class="primary-button"
+                    type="button"
+                >
+                    Next →
+                </button>
+
+            </div>
+
+
+            <button
+                id="uploadNewFileFromQuiz"
+                class="text-button"
+                type="button"
+            >
+                ← Upload a Different PDF
+            </button>
+
+        </section>
+
+
+        <!-- =========================
+             RESULTS
+        ========================== -->
+
+        <section
+            id="resultsSection"
+            class="section hidden"
+        >
+
+            <div class="card results-card">
+
+                <div class="result-icon">
+                    🎉
+                </div>
+
+                <p class="result-label">
+                    QUIZ COMPLETE
+                </p>
+
+                <h2>
+                    Great job!
+                </h2>
+
+
+                <div class="score-circle">
+
+                    <strong id="percentage">
+                        0%
+                    </strong>
+
+                    <span>
+                        Score
+                    </span>
+
+                </div>
+
+
+                <div class="score-details">
+
+                    <div>
+                        <strong id="score">
+                            0
+                        </strong>
+
+                        <span>
+                            Correct
+                        </span>
+                    </div>
+
+
+                    <div>
+                        <strong id="totalScore">
+                            0
+                        </strong>
+
+                        <span>
+                            Questions
+                        </span>
+                    </div>
+
+                </div>
+
+
+                <button
+                    id="restartButton"
+                    class="primary-button"
+                    type="button"
+                >
+                    Try Again ↻
+                </button>
+
+
+                <button
+                    id="uploadNewFileFromResults"
+                    class="secondary-button"
+                    type="button"
+                >
+                    ← Upload New PDF
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <footer>
+        StudyQuiz • Learn. Practice. Improve.
+    </footer>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
