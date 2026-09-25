@@ -22,12 +22,21 @@ document.addEventListener("DOMContentLoaded", function () {
     // ELEMENTS
     // ============================================
 
-    const pdfFile = document.getElementById("pdfFile");
-    const fileName = document.getElementById("fileName");
-    const continueButton = document.getElementById("continueButton");
+    const pdfFile =
+        document.getElementById("pdfFile");
 
-    const uploadSection = document.getElementById("uploadSection");
-    const textPreview = document.getElementById("textPreview");
+    const fileName =
+        document.getElementById("fileName");
+
+    const continueButton =
+        document.getElementById("continueButton");
+
+    const uploadSection =
+        document.getElementById("uploadSection");
+
+    const textPreview =
+        document.getElementById("textPreview");
+
     const extractedTextPreview =
         document.getElementById("extractedTextPreview");
 
@@ -98,81 +107,90 @@ document.addEventListener("DOMContentLoaded", function () {
     // PDF UPLOAD
     // ============================================
 
-    pdfFile.addEventListener("change", async function () {
+    pdfFile.addEventListener(
+        "change",
+        async function () {
 
-        const file = pdfFile.files[0];
+            const file =
+                pdfFile.files[0];
 
-        if (!file) {
-            return;
-        }
-
-        fileName.textContent =
-            "Selected: " + file.name;
-
-        continueButton.disabled = true;
-
-        continueButton.textContent =
-            "Reading PDF...";
-
-        try {
-
-            const isPDF =
-                file.type === "application/pdf" ||
-                file.name.toLowerCase().endsWith(".pdf");
-
-            if (!isPDF) {
-                throw new Error(
-                    "Please select a PDF file."
-                );
+            if (!file) {
+                return;
             }
 
-            extractedText =
-                await readPDF(file);
+            fileName.textContent =
+                "Selected: " + file.name;
 
-            if (
-                !extractedText ||
-                extractedText.trim().length === 0
-            ) {
+            continueButton.disabled =
+                true;
 
-                throw new Error(
-                    "No readable text was found in this PDF."
+            continueButton.textContent =
+                "Reading PDF...";
+
+            try {
+
+                const isPDF =
+                    file.type === "application/pdf" ||
+                    file.name
+                        .toLowerCase()
+                        .endsWith(".pdf");
+
+                if (!isPDF) {
+                    throw new Error(
+                        "Please select a PDF file."
+                    );
+                }
+
+                extractedText =
+                    await readPDF(file);
+
+                if (
+                    !extractedText ||
+                    extractedText.trim().length === 0
+                ) {
+
+                    throw new Error(
+                        "No readable text was found in this PDF."
+                    );
+
+                }
+
+                extractedTextPreview.textContent =
+                    extractedText;
+
+                continueButton.disabled =
+                    false;
+
+                continueButton.textContent =
+                    "Continue →";
+
+                console.log(
+                    "PDF successfully read:",
+                    extractedText.length,
+                    "characters"
+                );
+
+            } catch (error) {
+
+                console.error(error);
+
+                extractedText = "";
+
+                continueButton.disabled =
+                    true;
+
+                continueButton.textContent =
+                    "Continue →";
+
+                alert(
+                    "Unable to read the PDF.\n\n" +
+                    error.message
                 );
 
             }
 
-            extractedTextPreview.textContent =
-                extractedText;
-
-            continueButton.disabled = false;
-
-            continueButton.textContent =
-                "Continue →";
-
-            console.log(
-                "PDF successfully read:",
-                extractedText.length,
-                "characters"
-            );
-
-        } catch (error) {
-
-            console.error(error);
-
-            extractedText = "";
-
-            continueButton.disabled = true;
-
-            continueButton.textContent =
-                "Continue →";
-
-            alert(
-                "Unable to read the PDF.\n\n" +
-                error.message
-            );
-
         }
-
-    });
+    );
 
 
     // ============================================
@@ -185,9 +203,11 @@ document.addEventListener("DOMContentLoaded", function () {
             await file.arrayBuffer();
 
         const pdf =
-            await pdfjsLib.getDocument({
-                data: arrayBuffer
-            }).promise;
+            await pdfjsLib
+                .getDocument({
+                    data: arrayBuffer
+                })
+                .promise;
 
         let text = "";
 
@@ -205,7 +225,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const pageText =
                 content.items
-                    .map(item => item.str)
+                    .map(
+                        item => item.str
+                    )
                     .join(" ");
 
             text +=
@@ -237,9 +259,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            uploadSection.classList.add("hidden");
+            uploadSection.classList.add(
+                "hidden"
+            );
 
-            textPreview.classList.remove("hidden");
+            textPreview.classList.remove(
+                "hidden"
+            );
 
             window.scrollTo({
                 top: 0,
@@ -258,9 +284,13 @@ document.addEventListener("DOMContentLoaded", function () {
         "click",
         function () {
 
-            textPreview.classList.add("hidden");
+            textPreview.classList.add(
+                "hidden"
+            );
 
-            quizSettings.classList.remove("hidden");
+            quizSettings.classList.remove(
+                "hidden"
+            );
 
         }
     );
@@ -288,7 +318,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         });
 
-                    button.classList.add("active");
+                    button.classList.add(
+                        "active"
+                    );
 
                     selectedQuizType =
                         button.dataset.type;
@@ -321,7 +353,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         });
 
-                    button.classList.add("active");
+                    button.classList.add(
+                        "active"
+                    );
 
                     selectedQuestionCount =
                         Number(
@@ -335,7 +369,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // ============================================
-    // GENERATE QUIZ WITH LOCAL AI
+    // GENERATE QUIZ
     // ============================================
 
     generateButton.addEventListener(
@@ -351,7 +385,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            generateButton.disabled = true;
+            generateButton.disabled =
+                true;
 
             generateButton.textContent =
                 "AI is creating your quiz...";
@@ -392,7 +427,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 answerChecked = false;
 
-
                 quizSettings.classList.add(
                     "hidden"
                 );
@@ -401,15 +435,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     "hidden"
                 );
 
-
                 displayQuestion();
-
 
                 window.scrollTo({
                     top: 0,
                     behavior: "smooth"
                 });
-
 
             } catch (error) {
 
@@ -425,8 +456,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             }
 
-
-            generateButton.disabled = false;
+            generateButton.disabled =
+                false;
 
             generateButton.textContent =
                 "Generate Quiz →";
@@ -436,7 +467,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // ============================================
-    // GENERATE QUIZ USING OLLAMA
+    // GENERATE QUIZ USING GEMINI BACKEND
     // ============================================
 
     async function generateQuizWithAI(
@@ -446,13 +477,12 @@ document.addEventListener("DOMContentLoaded", function () {
     ) {
 
         console.log(
-            "Sending study material to local AI..."
+            "Sending study material to StudyQuiz backend..."
         );
-
 
         const response =
             await fetch(
-                "http://localhost:3000/generate-quiz",
+                "https://studyquiz-xuwq.onrender.com/generate-quiz",
                 {
 
                     method: "POST",
@@ -479,7 +509,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!response.ok) {
 
             let errorMessage =
-                "The local AI server returned an error.";
+                "The StudyQuiz server returned an error.";
 
             try {
 
@@ -487,12 +517,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     await response.json();
 
                 if (errorData.error) {
+
                     errorMessage =
                         errorData.error;
+
                 }
 
             } catch (error) {
+
                 // Ignore JSON parsing error
+
             }
 
             throw new Error(
@@ -543,7 +577,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        answerChecked = false;
+        answerChecked =
+            false;
 
 
         questionNumber.textContent =
@@ -565,7 +600,8 @@ document.addEventListener("DOMContentLoaded", function () {
             question.question;
 
 
-        answerArea.innerHTML = "";
+        answerArea.innerHTML =
+            "";
 
 
         // ========================================
@@ -601,7 +637,8 @@ document.addEventListener("DOMContentLoaded", function () {
                             "button"
                         );
 
-                    button.type = "button";
+                    button.type =
+                        "button";
 
                     button.className =
                         "answer-option";
@@ -617,9 +654,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             if (
                                 answerChecked
                             ) {
-
                                 return;
-
                             }
 
 
@@ -659,7 +694,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             );
 
-
         } else {
 
             // ====================================
@@ -671,7 +705,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     "input"
                 );
 
-            input.type = "text";
+            input.type =
+                "text";
 
             input.className =
                 "identification-input";
@@ -754,7 +789,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 ) {
 
                     userAnswer =
-                        answers[currentQuestion];
+                        answers[
+                            currentQuestion
+                        ];
 
 
                     if (!userAnswer) {
@@ -766,7 +803,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         return;
 
                     }
-
 
                 } else {
 
@@ -796,7 +832,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     answers[
                         currentQuestion
-                    ] = userAnswer;
+                    ] =
+                        userAnswer;
 
                 }
 
@@ -813,7 +850,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
 
 
-                answerChecked = true;
+                answerChecked =
+                    true;
 
 
                 // ====================================
@@ -841,7 +879,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                 if (input) {
-                    input.disabled = true;
+
+                    input.disabled =
+                        true;
+
                 }
 
 
@@ -1082,23 +1123,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function uploadNewPDF() {
 
-        pdfFile.value = "";
+        pdfFile.value =
+            "";
 
         fileName.textContent =
             "No file selected";
 
-        extractedText = "";
+        extractedText =
+            "";
 
         extractedTextPreview.textContent =
             "";
 
-        questions = [];
+        questions =
+            [];
 
-        answers = [];
+        answers =
+            [];
 
-        currentQuestion = 0;
+        currentQuestion =
+            0;
 
-        answerChecked = false;
+        answerChecked =
+            false;
 
 
         continueButton.disabled =
@@ -1193,11 +1240,14 @@ document.addEventListener("DOMContentLoaded", function () {
             "click",
             function () {
 
-                currentQuestion = 0;
+                currentQuestion =
+                    0;
 
-                answers = [];
+                answers =
+                    [];
 
-                answerChecked = false;
+                answerChecked =
+                    false;
 
 
                 quizSection.classList.remove(
